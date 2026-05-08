@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="DTR - Daily Time Record. Track your attendance effortlessly with smart time tracking, real-time dashboards, and exportable records.">
+    <title>DTR - Daily Time Record</title>
+
+    <!-- Tailwind CSS v4 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind theme tokens (must be inline for browser CDN) -->
+
+    <style type="text/tailwindcss">
+        @theme {
+            --font-sans: 'Inter', sans-serif;
+            --color-navy-950: #0a0e1a;
+            --color-navy-900: #0f1629;
+            --color-navy-800: #151d3a;
+            --color-navy-700: #1e2a4a;
+        }
+    </style>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="bg-navy-950 text-white font-sans antialiased overflow-x-hidden">
+
+    <!-- Ambient background orbs -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div class="orb w-[500px] h-[500px] bg-indigo-600/20 top-[-10%] left-[-5%]" style="animation-delay: 0s;">
+        </div>
+        <div class="orb w-[400px] h-[400px] bg-purple-600/15 top-[30%] right-[-10%]" style="animation-delay: 3s;">
+        </div>
+        <div class="orb w-[350px] h-[350px] bg-violet-600/10 bottom-[-5%] left-[30%]" style="animation-delay: 5s;">
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="nav-container">
+                <!-- Logo (far left) -->
+                <a href="/" id="logo" class="flex items-center gap-3 group">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:shadow-indigo-500/40 transition-shadow duration-300">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">DTR</span>
+                </a>
+
+                <!-- Nav Links (centered, hidden on mobile) -->
+                <div class="nav-links flex items-center gap-8">
+                    <a href="#hero"
+                        class="nav-link text-sm text-gray-400 no-underline transition-colors duration-200 hover:text-white active"
+                        data-section="hero">Home</a>
+                    <a href="#features"
+                        class="nav-link text-sm text-gray-400 no-underline transition-colors duration-200 hover:text-white"
+                        data-section="features">Features</a>
+                    <a href="#about"
+                        class="nav-link text-sm text-gray-400 no-underline transition-colors duration-200 hover:text-white"
+                        data-section="about">About</a>
+                </div>
+
+                <!-- Theme Toggle & Login (far right, hidden on mobile) -->
+                <div class="nav-auth flex items-center gap-3 justify-end">
+                    <button id="theme-toggle" aria-label="Toggle theme"
+                        class="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 cursor-pointer">
+                        <!-- Sun icon (shown in dark mode) -->
+                        <svg id="icon-sun" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <!-- Moon icon (shown in light mode) -->
+                        <svg id="icon-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                    <a href="/login" id="btn-login"
+                        class="btn-primary text-sm font-medium text-white px-5 py-2.5 rounded-lg">
+                        Log in
+                    </a>
+                </div>
+
+                <!-- Hamburger Button (mobile only) -->
+                <button id="mobile-menu-btn" aria-label="Toggle menu"
+                    class="mobile-menu-btn hidden w-10 h-10 rounded-lg items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu (Full-screen overlay, outside nav to avoid clipping) -->
+    <div id="mobile-menu" class="mobile-menu fixed inset-0 w-full h-full z-[100] overflow-hidden">
+        <!-- Close button -->
+        <button id="mobile-close-btn" aria-label="Close menu"
+            class="mobile-close-btn absolute top-5 right-6 w-10 h-10 flex items-center justify-center text-gray-500 bg-transparent border-none cursor-pointer transition-colors duration-200 hover:text-purple-400 z-[101]">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <!-- Centered links -->
+        <div class="mobile-menu-inner flex flex-col items-center justify-center h-full gap-2">
+            <a href="#hero"
+                class="mobile-nav-link block py-4 px-8 text-2xl uppercase tracking-wide no-underline font-black"
+                data-section="hero">Home</a>
+            <a href="#features"
+                class="mobile-nav-link block py-4 px-8 text-2xl uppercase tracking-wide no-underline font-black"
+                data-section="features">Features</a>
+            <a href="#about"
+                class="mobile-nav-link block py-4 px-8 text-2xl uppercase tracking-wide no-underline font-black"
+                data-section="about">About</a>
+            <div class="mobile-divider w-12 h-px my-3"></div>
+            <a href="/login"
+                class="mobile-nav-link block py-4 px-8 text-2xl uppercase tracking-wide no-underline font-black">Log
+                in</a>
+            <div class="mobile-divider w-12 h-px my-3"></div>
+            <!-- Mobile theme toggle -->
+            <button id="mobile-theme-toggle" aria-label="Toggle theme"
+                class="w-10 h-10 rounded-lg flex items-center justify-center text-gray-400 hover:text-white transition-colors duration-200 cursor-pointer bg-transparent border-none">
+                <!-- Sun icon -->
+                <svg class="mobile-icon-sun w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <!-- Moon icon -->
+                <svg class="mobile-icon-moon w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="hero" class="section-page min-h-screen flex items-center justify-center relative pt-20">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+            <!-- Badge -->
+            <div
+                class="scroll-reveal inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-8">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                <span class="text-xs font-medium text-indigo-300">Now with Firebase Integration</span>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="scroll-reveal text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight mb-6"
+                style="transition-delay: 0.1s">
+                Track Your Time,<br>
+                <span class="gradient-text">Effortlessly</span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="scroll-reveal text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed"
+                style="transition-delay: 0.2s">
+                Streamline your daily attendance with smart time tracking, real-time dashboards, and exportable records
+                — all in one place.
+            </p>
+
+            <!-- CTA Button -->
+            <div class="scroll-reveal" style="transition-delay: 0.3s">
+                <a href="/signup" id="cta-get-started"
+                    class="btn-primary inline-block text-base font-semibold text-white px-10 py-3.5 rounded-xl">
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section-page min-h-screen flex items-center justify-center relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <!-- Section Header -->
+            <div class="text-center mb-16 scroll-reveal">
+                <p class="text-sm font-semibold text-indigo-400 tracking-widest uppercase mb-3">Features</p>
+                <h2 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                    Everything you need to <span class="gradient-text">manage attendance</span>
+                </h2>
+                <p class="text-gray-400 max-w-xl mx-auto">
+                    Simple yet powerful tools designed to make time tracking a breeze.
+                </p>
+            </div>
+
+            <!-- Feature Cards -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Time In & Out -->
+                <div id="feature-time"
+                    class="scroll-reveal glass-card rounded-2xl p-8 transition-all duration-300 group hover:scale-[1.02]"
+                    style="transition-delay: 0.1s">
+                    <div
+                        class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Time In & Out</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        One-click clock in and out with automatic timestamp recording. Track your daily work hours with
+                        precision.
+                    </p>
+                </div>
+
+                <!-- History & Records -->
+                <div id="feature-history"
+                    class="scroll-reveal glass-card rounded-2xl p-8 transition-all duration-300 group hover:scale-[1.02]"
+                    style="transition-delay: 0.2s">
+                    <div
+                        class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">History & Records</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Access your complete attendance history organized by date. Filter and search through past
+                        records effortlessly.
+                    </p>
+                </div>
+
+                <!-- Export Data -->
+                <div id="feature-export"
+                    class="scroll-reveal glass-card rounded-2xl p-8 transition-all duration-300 group hover:scale-[1.02]"
+                    style="transition-delay: 0.3s">
+                    <div
+                        class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-7 h-7 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Export Data</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Download your records in CSV or PDF format. Perfect for payroll submissions and compliance
+                        requirements.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section-page min-h-screen flex items-center justify-center relative">
+        <div class="max-w-4xl mx-auto px-6 lg:px-8 text-center">
+            <h2 class="scroll-reveal text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6 leading-tight">
+                A dedicated tool committed to powering your success with the ultimate
+                <span class="gradient-text">time tracking platform.</span>
+            </h2>
+            <p class="scroll-reveal text-gray-400 max-w-2xl mx-auto mb-10 text-lg leading-relaxed"
+                style="transition-delay: 0.1s">
+                A powerful tool designed to help teams and individuals track their daily attendance with ease.
+                Build better workflows with confidence.
+            </p>
+            <a href="/signup" id="cta-about-signup"
+                class="scroll-reveal btn-outline inline-block text-base font-medium text-gray-300 px-10 py-4 rounded-xl"
+                style="transition-delay: 0.2s">
+                Start Tracking
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative overflow-hidden">
+        <!-- Animated gradient separator -->
+        <div class="footer-glow-line"></div>
+
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 pt-20 pb-8">
+            <!-- Large centered wordmark -->
+            <div class="text-center mb-12">
+                <a href="#hero" class="inline-block group">
+                    <span
+                        class="footer-wordmark text-7xl sm:text-8xl lg:text-9xl font-black tracking-tighter select-none">
+                        DTR
+                    </span>
+                </a>
+                <p class="text-sm text-gray-500 mt-4 tracking-widest uppercase">Daily Time Record</p>
+            </div>
+
+            <!-- Centered inline links -->
+            <div class="flex items-center justify-center gap-8 mb-16">
+                <a href="#hero" class="text-sm text-gray-500 hover:text-white transition-colors duration-200">Home</a>
+                <span class="w-1 h-1 rounded-full bg-gray-700"></span>
+                <a href="#features"
+                    class="text-sm text-gray-500 hover:text-white transition-colors duration-200">Features</a>
+                <span class="w-1 h-1 rounded-full bg-gray-700"></span>
+                <a href="#about" class="text-sm text-gray-500 hover:text-white transition-colors duration-200">About</a>
+                <span class="w-1 h-1 rounded-full bg-gray-700"></span>
+                <a href="/login" class="text-sm text-gray-500 hover:text-white transition-colors duration-200">Log
+                    in</a>
+            </div>
+
+            <!-- Floating pill bottom bar -->
+            <div class="footer-pill mx-auto flex items-center justify-between gap-6 max-w-xl px-8 py-4 rounded-full">
+                <p class="text-xs text-gray-500">&copy; 2026 DTR</p>
+                <div class="flex items-center gap-4">
+                    <a href="#" class="text-gray-600 hover:text-indigo-400 transition-colors" aria-label="GitHub">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-indigo-400 transition-colors" aria-label="Email">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </a>
+                </div>
+                <a href="#" class="text-xs text-gray-600 hover:text-gray-400 transition-colors">Privacy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mobile-toggle.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dark_light_mode.js') }}"></script>
+
+</body>
+
+</html>

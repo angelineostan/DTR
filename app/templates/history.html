@@ -1,0 +1,72 @@
+{% extends "layouts/app_layout.html" %}
+
+{% block title %}Attendance History{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-end flex-wrap gap-4">
+    <div>
+        <h1
+            class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 light-mode:from-indigo-600 light-mode:to-purple-600">
+            History & Timeline
+        </h1>
+        <p class="text-gray-400 mt-2 light-mode:text-gray-600">Review your past attendance records and export
+            timesheets.</p>
+    </div>
+
+    <div class="flex gap-3">
+        <button id="btn-filter"
+            class="glass-card px-5 py-2.5 rounded-xl border border-white/5 light-mode:border-black/5 hover:border-indigo-500/30 transition-colors flex items-center gap-2 text-sm font-medium text-white light-mode:text-gray-900 group opacity-50 cursor-not-allowed"
+            title="Coming soon">
+            <svg class="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                </path>
+            </svg>
+            Filter
+        </button>
+        <button id="btn-export-pdf"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/25 flex items-center gap-2 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+            </svg>
+            Export PDF
+        </button>
+    </div>
+</div>
+
+<div class="glass-card rounded-2xl border border-white/5 light-mode:border-black/5 p-6 lg:p-8 relative min-h-[400px]">
+
+    <!-- Timeline Line Indicator -->
+    <div class="absolute left-[39px] lg:left-[47px] top-10 bottom-10 w-px bg-white/10 light-mode:bg-black/10"></div>
+
+    <div id="timeline-container" class="space-y-8 relative z-10">
+        <!-- populated dynamically -->
+    </div>
+
+    <div id="timeline-loading" class="py-20 text-center text-gray-500 flex flex-col items-center justify-center">
+        <svg class="animate-spin h-8 w-8 text-indigo-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+        </svg>
+        Loading your timeline...
+    </div>
+    <div id="timeline-empty" class="py-20 text-center text-gray-500 hidden z-10 relative">
+        <div class="w-16 h-16 rounded-full bg-white/5 mx-auto flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        No attendance records found. Start using the Daily Attendance module!
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - DTR</title>
+
+    <!-- Tailwind CSS v4 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind theme tokens -->
+    <style type="text/tailwindcss">
+        @custom-variant light-mode (&:is(.light-mode *));
+        
+        @theme {
+            --font-sans: 'Inter', sans-serif;
+            --color-navy-950: #0a0e1a;
+            --color-navy-900: #0f1629;
+            --color-navy-800: #151d3a;
+            --color-navy-700: #1e2a4a;
+        }
+    </style>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+    <meta name="theme-color" content="#0a0e1a">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.svg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DTR">
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-navy-950 text-white font-sans antialiased overflow-hidden h-screen flex">
+
+    <!-- Ambient background orbs -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+        <div class="orb w-[500px] h-[500px] bg-indigo-600/10 top-[-10%] left-[-5%]" style="animation-delay: 0s;">
+        </div>
+        <div class="orb w-[400px] h-[400px] bg-purple-600/10 bottom-[-5%] right-[-5%]" style="animation-delay: -4s;">
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebar-backdrop"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity duration-300 opacity-0"
+        aria-hidden="true"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="app-sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 glass-card border-r border-white/5 transform -translate-x-full lg:translate-x-0 lg:static lg:block transition-transform duration-300 ease-in-out flex flex-col light-mode:border-black/5 light-mode:bg-white/80">
+
+        <!-- Sidebar Header (Logo) -->
+        <div class="flex items-center justify-between h-20 px-6 border-b border-white/5 light-mode:border-black/5">
+            <a href="/dashboard" class="flex items-center gap-3 group">
+                <div
+                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:shadow-indigo-500/40 transition-shadow duration-300">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <span class="text-xl font-bold tracking-tight">DTR</span>
+            </a>
+            <!-- Mobile Close Button -->
+            <button id="close-sidebar" class="lg:hidden text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Sidebar Links -->
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <a href="/dashboard"
+                class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.path == '/dashboard' %}bg-white/10 text-white light-mode:bg-black/5 light-mode:text-indigo-600{% else %}text-gray-400 hover:text-white hover:bg-white/5 light-mode:text-gray-600 light-mode:hover:text-black light-mode:hover:bg-black/5{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Overview
+            </a>
+
+            <a href="/attendance"
+                class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.path == '/attendance' %}bg-white/10 text-white light-mode:bg-black/5 light-mode:text-indigo-600{% else %}text-gray-400 hover:text-white hover:bg-white/5 light-mode:text-gray-600 light-mode:hover:text-black light-mode:hover:bg-black/5{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Attendance
+            </a>
+
+            <a href="/history"
+                class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.path == '/history' %}bg-white/10 text-white light-mode:bg-black/5 light-mode:text-indigo-600{% else %}text-gray-400 hover:text-white hover:bg-white/5 light-mode:text-gray-600 light-mode:hover:text-black light-mode:hover:bg-black/5{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                History
+            </a>
+
+            <a href="/monitoring"
+                class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.path == '/monitoring' %}bg-white/10 text-white light-mode:bg-black/5 light-mode:text-indigo-600{% else %}text-gray-400 hover:text-white hover:bg-white/5 light-mode:text-gray-600 light-mode:hover:text-black light-mode:hover:bg-black/5{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Monitoring
+            </a>
+
+            <a href="/profile"
+                class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.path == '/profile' %}bg-white/10 text-white light-mode:bg-black/5 light-mode:text-indigo-600{% else %}text-gray-400 hover:text-white hover:bg-white/5 light-mode:text-gray-600 light-mode:hover:text-black light-mode:hover:bg-black/5{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Profile
+            </a>
+
+            {% if current_user and current_user.is_admin %}
+            <div class="pt-2 mt-2 border-t border-white/5 light-mode:border-black/5">
+                <a href="/admin"
+                    class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.path.startswith('/admin') %}bg-red-500/10 text-red-400 light-mode:text-red-600{% else %}text-gray-400 hover:text-red-400 hover:bg-red-500/10 light-mode:text-gray-600 light-mode:hover:text-red-600 light-mode:hover:bg-red-500/5{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    Admin Panel
+                </a>
+            </div>
+            {% endif %}
+        </nav>
+
+        <!-- Sidebar Footer (Logout) -->
+        <div class="px-4 py-4 border-t border-white/5 light-mode:border-black/5 w-full">
+            <button id="logout-btn"
+                class="w-full flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium text-red-500 hover:text-white hover:bg-red-500/20 transition-all border border-transparent hover:border-red-500/50 light-mode:hover:bg-red-500/10 light-mode:hover:text-red-600 text-left">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Log out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col h-screen relative z-10 w-full overflow-hidden">
+
+        <!-- Top Navbar -->
+        <header
+            class="h-20 glass-card border-b border-white/5 light-mode:border-black/5 px-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
+            <!-- Menu Toggle -->
+            <button id="toggle-sidebar" class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
+            <div class="flex items-center gap-4">
+                <!-- Theme Toggle -->
+                <button id="theme-toggle" aria-label="Toggle theme"
+                    class="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 cursor-pointer">
+                    <svg id="icon-sun" class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <svg id="icon-moon" class="w-5 h-5 hidden flex-shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+
+                <!-- User Profile Mini -->
+                <div class="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold shadow-inner cursor-pointer hover:ring-2 ring-indigo-500/50 transition-all bg-cover bg-center"
+                    {% if current_user and current_user.avatar_base64 %}
+                    style="background-image: url('{{ current_user.avatar_base64 }}'); color: transparent;" {% endif %}>
+                    {{ current_user.initials if current_user else 'U' }}
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-6">
+            <div class="animate-fade-in-up">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/dark_light_mode.js') }}"></script>
+    <script>
+        // Temporary sidebar toggle script logic until extracted
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('app-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const toggleBtn = document.getElementById('toggle-sidebar');
+            const closeBtn = document.getElementById('close-sidebar');
+
+            function openMobileSidebar() {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+                // Small delay to allow display flex to apply before opacity transition
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+                document.body.style.overflow = 'hidden'; // Prevent body scroll
+            }
+
+            function closeMobileSidebar() {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('opacity-0');
+                setTimeout(() => backdrop.classList.add('hidden'), 300); // match duration
+                document.body.style.overflow = '';
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    if (window.innerWidth >= 1024) { // lg breakpoint (1024px)
+                        sidebar.classList.toggle('lg:hidden');
+                    } else {
+                        openMobileSidebar();
+                    }
+                });
+            }
+            if (closeBtn) closeBtn.addEventListener('click', closeMobileSidebar);
+            if (backdrop) backdrop.addEventListener('click', closeMobileSidebar);
+
+            // Logout logic
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    try {
+                        await fetch('/sessionLogout', { method: 'POST' });
+                        window.location.href = '/login';
+                    } catch (e) {
+                        console.error('Logout failed:', e);
+                    }
+                });
+            }
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[Service Worker] Registered', reg.scope))
+                    .catch(err => console.error('[Service Worker] Registration failed', err));
+            });
+        }
+    </script>
+</body>
+
+</html>

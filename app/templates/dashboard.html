@@ -1,0 +1,300 @@
+{% extends "layouts/app_layout.html" %}
+
+{% block title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+
+<!-- Greeting -->
+<div class="mb-6 xl:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-white light-mode:text-slate-800">
+            Welcome back, {{ current_user.first_name if current_user and current_user.first_name else
+            current_user.display_name if current_user else 'User' }}!
+        </h1>
+        <p class="text-sm text-gray-400 mt-1 light-mode:text-slate-500">Here's your summary for today.</p>
+    </div>
+</div>
+
+<!-- Top Dashboard Grid -->
+<div class="grid grid-cols-12 gap-4 md:gap-6 2xl:gap-7.5">
+
+    <!-- Left Column (Stats + Bar Chart) -->
+    <div class="col-span-12 xl:col-span-8 space-y-4 md:space-y-6">
+
+        <!-- Two Stat Cards Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+
+            <!-- Stat Card 1 -->
+            <div
+                class="glass-card rounded-2xl border border-white/5 light-mode:border-black/5 hover:border-indigo-500/30 transition-colors p-6 xl:p-7.5">
+                <div
+                    class="w-11.5 h-11.5 rounded-full bg-slate-100 light-mode:bg-slate-100 dark:bg-meta-4 flex items-center justify-center mb-5.5">
+                    <div
+                        class="w-10 h-10 rounded-full bg-slate-100 light-mode:bg-slate-50 flex items-center justify-center text-blue-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-end justify-between relative">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-400 light-mode:text-slate-500 mb-1">Hours Rendered</h4>
+                        <div class="flex items-baseline gap-1 relative">
+                            <span id="stat-today-hours"
+                                class="text-3xl font-bold text-white light-mode:text-slate-800 tracking-tight">--</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end" id="clocking-badge" style="display: none;">
+                        <span
+                            class="flex items-center gap-2 text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full mb-1">
+                            <span class="relative flex h-2 w-2">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Counting
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stat Card 2 -->
+            <div
+                class="glass-card rounded-2xl border border-white/5 light-mode:border-black/5 hover:border-purple-500/30 transition-colors p-6 xl:p-7.5">
+                <div
+                    class="w-11.5 h-11.5 rounded-full bg-slate-100 light-mode:bg-slate-100 dark:bg-meta-4 flex items-center justify-center mb-5.5">
+                    <div
+                        class="w-10 h-10 rounded-full bg-slate-100 light-mode:bg-slate-50 flex items-center justify-center text-blue-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-end justify-between">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-400 light-mode:text-slate-500 mb-1">Days Present</h4>
+                        <span id="stat-days-present"
+                            class="text-2xl font-bold text-white light-mode:text-slate-800">--</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bar Chart Card -->
+        <div
+            class="glass-card flex flex-col justify-between rounded-2xl border border-white/5 light-mode:border-black/5 p-6 xl:p-7.5 mt-4 md:mt-6">
+            <div class="flex items-center justify-between mb-6">
+                <h4 class="text-base font-bold text-white light-mode:text-slate-800">Daily Attendance</h4>
+                <div
+                    class="text-gray-400 light-mode:text-slate-400 cursor-pointer hover:text-gray-300 light-mode:hover:text-slate-600">
+                    <select id="bar-week-select" onchange="setBarWeek(this.value)"
+                        class="bg-navy-800 light-mode:bg-slate-50 border border-white/5 light-mode:border-slate-200 text-xs font-medium rounded-md px-2 py-1 outline-none">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- CSS Bar Chart Visualization -->
+            <div
+                class="w-full h-48 flex items-end justify-between gap-2 sm:gap-6 lg:gap-10 pl-8 lg:pl-10 mt-12 mb-6 relative">
+                <!-- Y-axis lines -->
+                <div
+                    class="absolute inset-x-0 top-0 bottom-0 z-0 pointer-events-none text-xs text-gray-500 light-mode:text-slate-400">
+                    <div
+                        class="absolute top-0 border-t border-white/5 light-mode:border-slate-100/60 left-8 lg:left-10 right-0">
+                        <span class="absolute -top-2 -left-8 lg:-left-10 text-left">12h</span>
+                    </div>
+                    <div
+                        class="absolute top-[33.33%] border-t border-white/5 light-mode:border-slate-100/60 left-8 lg:left-10 right-0">
+                        <span class="absolute -top-2 -left-8 lg:-left-10 text-left">8h</span>
+                    </div>
+                    <div
+                        class="absolute top-[66.66%] border-t border-white/5 light-mode:border-slate-100/60 left-8 lg:left-10 right-0">
+                        <span class="absolute -top-2 -left-8 lg:-left-10 text-left">4h</span>
+                    </div>
+                    <div
+                        class="absolute bottom-0 border-t border-white/5 light-mode:border-slate-100/60 left-8 lg:left-10 right-0">
+                        <span class="absolute -top-2 -left-8 lg:-left-10 text-left">0h</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic bars container -->
+                <div id="bars-container"
+                    class="relative w-full h-full z-10 flex items-end justify-between gap-2 sm:gap-6 lg:gap-10">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Column (Target Chart) -->
+    <div
+        class="col-span-12 xl:col-span-4 glass-card rounded-2xl border border-white/5 light-mode:border-black/5 p-6 xl:p-9 relative overflow-hidden group">
+        <div
+            class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity">
+        </div>
+        <div class="flex items-center justify-between mb-2 relative z-10">
+            <div>
+                <h4 class="text-base font-bold text-white light-mode:text-slate-800">Target Hours</h4>
+                <p class="text-sm text-gray-400 light-mode:text-slate-500 mt-1">Total hours needed</p>
+            </div>
+            <div
+                class="text-gray-400 light-mode:text-slate-400 cursor-pointer hover:text-gray-300 light-mode:hover:text-slate-600 self-start mt-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center mt-12 mb-8 relative z-10">
+            <!-- SVG Semi-Circle Progress -->
+            <svg class="w-64 h-32 transform relative" viewBox="0 0 100 50">
+                <!-- Background Arc -->
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#e2e8f0" stroke-width="8"
+                    stroke-linecap="round" class="light-mode:stroke-slate-200 stroke-navy-700" />
+                <!-- Progress Arc (blue) -->
+                <path id="progress-arc" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" class="stroke-blue-600"
+                    stroke-width="8" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="125.6" />
+            </svg>
+            <div class="absolute bottom-6 flex flex-col items-center">
+                <span id="target-pct" class="text-4xl font-bold text-white light-mode:text-slate-800 mb-2">--%</span>
+                <span id="target-status"
+                    class="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-sm flex items-center gap-1">Loading...</span>
+            </div>
+        </div>
+
+        <p id="target-message"
+            class="text-sm font-medium text-center text-gray-400 light-mode:text-slate-500 mb-8 max-w-xs mx-auto relative z-10">
+            Loading your progress...
+        </p>
+
+        <div
+            class="grid grid-cols-3 gap-2 text-center pt-6 border-t border-white/5 light-mode:border-slate-100 relative z-10">
+            <div>
+                <span class="block text-sm font-medium text-gray-400 light-mode:text-slate-500 mb-1">Target</span>
+                <span id="target-val"
+                    class="block text-base font-bold text-white light-mode:text-slate-800 flex items-center justify-center gap-1">
+                    --
+                </span>
+            </div>
+            <div>
+                <span class="block text-sm font-medium text-gray-400 light-mode:text-slate-500 mb-1">Logged</span>
+                <span id="logged-val"
+                    class="block text-base font-bold text-white light-mode:text-slate-800 flex items-center justify-center gap-1">
+                    --
+                </span>
+            </div>
+            <div>
+                <span class="block text-sm font-medium text-gray-400 light-mode:text-slate-500 mb-1">Left</span>
+                <span id="left-val"
+                    class="block text-base font-bold text-white light-mode:text-slate-800 flex items-center justify-center gap-1">
+                    --
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Full Width Row (Statistics / Graph Area) -->
+<div
+    class="mt-4 md:mt-6 glass-card rounded-2xl border border-white/5 light-mode:border-black/5 p-6 xl:p-9 relative overflow-hidden">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 z-10 relative">
+        <div>
+            <h4 class="text-base font-bold text-white light-mode:text-slate-800">Weekly Hours Trend</h4>
+            <p class="text-sm text-gray-400 light-mode:text-slate-500 mt-1">Daily attendance hours logged this week</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4">
+            <div
+                class="flex bg-navy-800 light-mode:bg-slate-50 rounded-sm p-1 border border-white/5 light-mode:border-slate-200">
+                <button id="trend-btn-overview" onclick="setTrendFilter('overview')"
+                    class="px-3 py-1 text-xs font-semibold rounded-sm bg-blue-600 text-white shadow-sm">Overview</button>
+                <button id="trend-btn-regular" onclick="setTrendFilter('regular')"
+                    class="px-3 py-1 text-xs font-medium text-gray-400 light-mode:text-slate-500 hover:text-white light-mode:hover:text-slate-800 transition-colors rounded-sm">Regular</button>
+                <button id="trend-btn-overtime" onclick="setTrendFilter('overtime')"
+                    class="px-3 py-1 text-xs font-medium text-gray-400 light-mode:text-slate-500 hover:text-white light-mode:hover:text-slate-800 transition-colors rounded-sm">Overtime</button>
+            </div>
+        </div>
+        <label
+            class="flex items-center gap-2 border border-white/5 light-mode:border-slate-200 px-3 py-1.5 rounded-sm bg-navy-800 light-mode:bg-white text-xs font-medium text-gray-400 light-mode:text-slate-600 cursor-pointer shadow-sm hover:text-gray-300 light-mode:hover:text-slate-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                </path>
+            </svg>
+            <select id="trend-week-select" onchange="setTrendWeek(this.value)"
+                class="bg-transparent border-none outline-none cursor-pointer w-[125px]">
+                <!-- Populated dynamically -->
+            </select>
+        </label>
+    </div>
+
+    <!-- CSS Area Graph Visual -->
+    <div class="w-full h-48 sm:h-64 mt-4 relative z-0">
+        <!-- Lines -->
+        <div
+            class="absolute inset-x-0 bottom-6 top-8 pointer-events-none text-xs text-gray-400 light-mode:text-slate-400">
+            <div
+                class="absolute top-0 border-t border-white/5 light-mode:border-slate-100/60 left-8 lg:left-10 right-0">
+                <span class="absolute -top-3 -left-8 lg:-left-10 text-left">12h</span>
+            </div>
+            <div
+                class="absolute top-[33.33%] border-t border-white/5 light-mode:border-slate-100/60 left-8 lg:left-10 right-0">
+                <span class="absolute -top-3 -left-8 lg:-left-10 text-left">8h</span>
+            </div>
+            <div
+                class="absolute top-[66.66%] border-t border-white/5 light-mode:border-slate-100/60 left-8 lg:left-10 right-0">
+                <span class="absolute -top-3 -left-8 lg:-left-10 text-left">4h</span>
+            </div>
+            <div
+                class="absolute bottom-0 border-t border-white/5 light-mode:border-slate-100/60 left-8 lg:left-10 right-0">
+                <span class="absolute -top-3 -left-8 lg:-left-10 text-left">0h</span>
+            </div>
+        </div>
+
+        <!-- Bounding Box for SVG rendering perfectly within bounds -->
+        <div class="absolute left-8 lg:left-10 right-0 bottom-6 top-8">
+            <div class="relative w-full h-full">
+                <!-- Gradient Vector Overlay -->
+                <div id="trend-gradient" class="absolute inset-0"
+                    style="background: linear-gradient(180deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0) 100%); clip-path: polygon(0% 100%, 0% 100%, 100% 100%, 100% 100%);">
+                </div>
+                <svg id="trend-line" class="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none"
+                    viewBox="0 0 100 100">
+                    <!-- Overtime Line -->
+                    <polyline id="poly-overtime" points="0,100" fill="none" stroke="#f59e0b" stroke-width="1.5"
+                        vector-effect="non-scaling-stroke"></polyline>
+                    <!-- Regular Line -->
+                    <polyline id="poly-regular" points="0,100" fill="none" stroke="#10b981" stroke-width="1.5"
+                        vector-effect="non-scaling-stroke"></polyline>
+                    <!-- Overview Line -->
+                    <polyline id="poly-overview" points="0,100" fill="none" stroke="#2563eb" stroke-width="2"
+                        vector-effect="non-scaling-stroke"></polyline>
+                </svg>
+                <!-- Tooltips Container -->
+                <div id="trend-tooltips" class="absolute inset-0 w-full h-full flex justify-between"></div>
+            </div>
+        </div>
+
+        <!-- X Axis labels horizontally aligned to SVG Bounding Box -->
+        <div id="trend-x-labels"
+            class="absolute bottom-0 left-8 lg:left-10 right-0 grid grid-cols-7 text-center text-[10px] sm:text-xs text-gray-500 light-mode:text-slate-400">
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+            <span>Sun</span>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "layouts/app_layout.html" %}
+
+{% block title %}Weekly Monitoring{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-end flex-wrap gap-4">
+    <div>
+        <h1
+            class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 light-mode:from-indigo-600 light-mode:to-purple-600">
+            Weekly Monitoring
+        </h1>
+        <p class="text-gray-400 mt-2 light-mode:text-gray-600">Track your daily tasks, applied skills, and challenges.
+        </p>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="glass-card rounded-2xl border border-white/5 light-mode:border-black/5 overflow-hidden flex flex-col">
+    <!-- Table Header & Controls -->
+    <div
+        class="p-6 border-b border-white/5 light-mode:border-black/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div
+                class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold text-white light-mode:text-gray-900">Task Overview</h2>
+                <p id="week-label" class="text-sm text-gray-400 light-mode:text-gray-600 mt-0.5">Loading Week...</p>
+            </div>
+        </div>
+
+        <!-- Pagination Controls & Export -->
+        <div class="flex items-center gap-4">
+            <button id="btn-export-pdf"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors shadow-lg shadow-indigo-500/25">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                Export PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Table Content -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs text-gray-400 light-mode:text-gray-500 uppercase bg-white/5 light-mode:bg-gray-50/80">
+                <tr>
+                    <th scope="col" class="px-6 py-4 font-semibold w-32">Date</th>
+                    <th scope="col" class="px-6 py-4 font-semibold w-1/4">Task/Activity</th>
+                    <th scope="col" class="px-6 py-4 font-semibold w-1/4">Skills/Knowledge Applied</th>
+                    <th scope="col" class="px-6 py-4 font-semibold w-1/4">Challenges Encountered</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-center w-24">Action</th>
+                </tr>
+            </thead>
+            <tbody id="monitoring-tbody" class="divide-y divide-white/5 light-mode:divide-black/5">
+                <!-- Rows injected via JS -->
+            </tbody>
+        </table>
+
+        <!-- Loading State -->
+        <div id="monitoring-loading" class="py-12 flex flex-col items-center justify-center text-gray-400">
+            <div
+                class="w-8 h-8 md:w-10 md:h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4">
+            </div>
+            <p class="text-sm font-medium animate-pulse">Loading monitoring data...</p>
+        </div>
+
+        <!-- Empty/Error State -->
+        <div id="monitoring-empty" class="hidden py-16 text-center">
+            <div
+                class="w-16 h-16 rounded-full bg-white/5 mx-auto flex items-center justify-center mb-4 border border-white/10">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-white light-mode:text-gray-900 mb-1">No Data Available</h3>
+            <p class="text-gray-400" id="monitoring-empty-text">Failed to load monitoring data.</p>
+        </div>
+    </div>
+    <!-- Bottom Controls: Pagination -->
+    <div class="flex items-center justify-end p-6 border-t border-white/5 light-mode:border-black/5">
+        <div class="flex items-center gap-2">
+            <button id="btn-prev-week"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 text-white light-mode:text-gray-900 light-mode:bg-black/5 light-mode:hover:bg-black/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
+            </button>
+            <button id="btn-next-week"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 text-white light-mode:text-gray-900 light-mode:bg-black/5 light-mode:hover:bg-black/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                Next
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/monitoring.js') }}"></script>
+{% endblock %}

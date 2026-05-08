@@ -1,0 +1,107 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1
+        class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-orange-400 light-mode:from-red-600 light-mode:to-orange-600">
+        Settings
+    </h1>
+    <p class="text-gray-400 mt-2 light-mode:text-gray-600">Configure global system settings.</p>
+</div>
+
+<div>
+    <div class="glass-card p-6 rounded-2xl border border-white/5 light-mode:border-black/5">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-semibold text-white light-mode:text-gray-900">Work Hours Configuration</h2>
+        </div>
+
+        <form id="settings-form" class="space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-2">Required Hours
+                        Per Day</label>
+                    <div class="flex items-center gap-3">
+                        <input type="number" id="required-hours" min="1" max="24" step="0.5" value="8"
+                            class="w-32 bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors text-center text-lg font-semibold">
+                        <span class="text-gray-400 text-sm">hours</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Standard working hours expected per day for all users.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-2">Total Hours
+                        Needed</label>
+                    <div class="flex items-center gap-3">
+                        <input type="number" id="total-hours-needed" min="1" max="5000" step="1" value="500"
+                            class="w-32 bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors text-center text-lg font-semibold">
+                        <span class="text-gray-400 text-sm">hours</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Total hours each user must complete (e.g. 500 for OJT).
+                    </p>
+                </div>
+            </div>
+
+            <button type="submit"
+                class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/25">
+                Save Settings
+            </button>
+            <div id="settings-result" class="text-sm hidden"></div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSettings();
+    });
+
+    async function loadSettings() {
+        try {
+            const res = await fetch('/api/admin/settings');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('required-hours').value = data.required_hours || 8;
+                document.getElementById('total-hours-needed').value = data.total_hours_needed || 500;
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const resultEl = document.getElementById('settings-result');
+        resultEl.classList.add('hidden');
+
+        const hours = parseFloat(document.getElementById('required-hours').value);
+        const totalNeeded = parseFloat(document.getElementById('total-hours-needed').value);
+
+        try {
+            const res = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    required_hours: hours,
+                    total_hours_needed: totalNeeded
+                })
+            });
+            const result = await res.json();
+            resultEl.classList.remove('hidden');
+            if (res.ok) {
+                resultEl.innerHTML = `<span class="text-emerald-400">✓ ${result.message}</span>`;
+            } else {
+                resultEl.innerHTML = `<span class="text-red-400">✗ ${result.error}</span>`;
+            }
+        } catch (err) {
+            resultEl.classList.remove('hidden');
+            resultEl.innerHTML = `<span class="text-red-400">✗ Network error</span>`;
+        }
+    });
+</script>
+{% endblock %}

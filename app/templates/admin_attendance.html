@@ -1,0 +1,457 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Attendance Viewer{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1
+        class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-orange-400 light-mode:from-red-600 light-mode:to-orange-600">
+        Attendance Viewer
+    </h1>
+    <p class="text-gray-400 mt-2 light-mode:text-gray-600">Select a user to view their attendance history.</p>
+</div>
+
+<!-- User Selector -->
+<div class="glass-card p-6 rounded-2xl border border-white/5 light-mode:border-black/5 mb-8">
+    <div class="flex items-center gap-4 flex-wrap">
+        <label for="user-select" class="text-sm font-medium text-gray-400 light-mode:text-gray-600">Select
+            User:</label>
+        <select id="user-select" onchange="loadUserAttendance(this.value)"
+            class="bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors min-w-[250px]">
+            <option value="" class="bg-navy-900 light-mode:bg-white">-- Choose a user --</option>
+        </select>
+        <div id="selected-user-info" class="text-sm text-gray-500 hidden mr-auto">
+            Showing records for: <span id="selected-user-name"
+                class="text-white light-mode:text-gray-900 font-medium"></span>
+        </div>
+
+        <div
+            class="ml-auto w-full md:w-auto flex items-center justify-end gap-3 border-t md:border-none border-white/10 pt-4 md:pt-0">
+            <label class="text-sm font-medium text-gray-400 light-mode:text-gray-600">Sort by Date:</label>
+            <select id="sort-order" onchange="renderAttendanceTable()"
+                class="bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors">
+                <option value="desc" class="bg-navy-900 light-mode:bg-white">Newest First</option>
+                <option value="asc" class="bg-navy-900 light-mode:bg-white">Oldest First (Chronological)</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Table -->
+<div class="glass-card rounded-2xl border border-white/5 light-mode:border-black/5 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-max">
+            <thead>
+                <tr
+                    class="border-b border-white/10 light-mode:border-black/10 text-sm font-medium text-gray-400 light-mode:text-gray-500 bg-white/5 light-mode:bg-black/5">
+                    <th class="py-3 px-6 font-semibold">Date</th>
+                    <th class="py-3 px-6 font-semibold">Status</th>
+                    <th class="py-3 px-6 font-semibold">AM In</th>
+                    <th class="py-3 px-6 font-semibold">AM Out</th>
+                    <th class="py-3 px-6 font-semibold">PM In</th>
+                    <th class="py-3 px-6 font-semibold">PM Out</th>
+                    <th class="py-3 px-6 font-semibold text-right">Total Hours</th>
+                    <th class="py-3 px-6 font-semibold text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody id="attendance-body" class="text-sm">
+            </tbody>
+        </table>
+
+        <div id="att-placeholder" class="py-16 text-center text-gray-500">
+            <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z">
+                </path>
+            </svg>
+            Select a user above to view their attendance records.
+        </div>
+        <div id="att-loading" class="py-16 text-center text-gray-500 hidden">
+            <svg class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            Loading records...
+        </div>
+        <div id="att-empty" class="py-16 text-center text-gray-500 hidden">
+            No attendance records found for this user.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Edit Record Modal -->
+<div id="edit-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center hidden bg-white/10 light-mode:bg-gray-200/50 backdrop-blur-md">
+    <div
+        class="bg-navy-900 light-mode:bg-white rounded-2xl border border-white/10 light-mode:border-black/10 w-full max-w-lg p-6 relative shadow-2xl">
+        <h3 class="text-xl font-bold text-white light-mode:text-gray-900 mb-4">Edit Attendance Record</h3>
+
+        <form id="edit-form" onsubmit="submitEdit(event)">
+            <input type="hidden" id="edit-id">
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">Status</label>
+                <select id="edit-status"
+                    class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-500">
+                    <option class="bg-navy-900 light-mode:bg-white" value="present">Present</option>
+                    <option class="bg-navy-900 light-mode:bg-white" value="half_day_am">Half Day (AM)</option>
+                    <option class="bg-navy-900 light-mode:bg-white" value="half_day_pm">Half Day (PM)</option>
+                    <option class="bg-navy-900 light-mode:bg-white" value="no_duty">Leave / No Duty</option>
+                    <option class="bg-navy-900 light-mode:bg-white" value="holiday">Holiday</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">AM In
+                        Time</label>
+                    <input type="time" id="edit-time-in-am"
+                        class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">AM Out
+                        Time</label>
+                    <input type="time" id="edit-time-out-am"
+                        class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">PM In
+                        Time</label>
+                    <input type="time" id="edit-time-in-pm"
+                        class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">PM Out
+                        Time</label>
+                    <input type="time" id="edit-time-out-pm"
+                        class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeEditModal()"
+                    class="px-4 py-2 rounded-xl text-gray-400 hover:text-white transition-colors">Cancel</button>
+                <button type="submit" id="save-edit-btn"
+                    class="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-lg transition-all font-medium">Save
+                    Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center hidden bg-white/10 light-mode:bg-gray-200/50 backdrop-blur-md">
+    <div
+        class="bg-navy-900 light-mode:bg-white rounded-2xl border border-red-500/20 light-mode:border-red-500/10 w-full max-w-sm p-6 relative shadow-2xl text-center">
+        <div
+            class="w-12 h-12 rounded-full bg-red-100 light-mode:bg-red-50 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-white light-mode:text-gray-900 mb-2">Delete Record</h3>
+        <p class="text-sm text-gray-400 light-mode:text-gray-600 mb-6">Are you sure you want to delete this attendance
+            record? This action cannot be undone.</p>
+
+        <div class="flex flex-col gap-3">
+            <button onclick="confirmDeleteRecord()" id="confirm-delete-btn"
+                class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-lg transition-all font-medium">
+                Yes, Delete Record
+            </button>
+            <button type="button" onclick="closeDeleteModal()"
+                class="w-full px-4 py-2 rounded-xl text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 light-mode:bg-gray-100 light-mode:hover:bg-gray-200 light-mode:text-gray-700 transition-colors font-medium">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentRecords = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUserList();
+    });
+
+    async function loadUserList() {
+        const select = document.getElementById('user-select');
+        try {
+            const res = await fetch('/api/admin/users');
+            if (res.ok) {
+                const users = await res.json();
+                users.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.uid;
+                    opt.textContent = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email;
+                    opt.className = 'bg-navy-900 light-mode:bg-white';
+                    opt.dataset.name = opt.textContent;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading users:', e);
+        }
+    }
+
+    function formatDateString(dateStr) {
+        if (!dateStr) return '--';
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const date = new Date(parts[0], parts[1] - 1, parts[2]);
+        return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatIsoTime(isoString) {
+        if (!isoString) return '--:--';
+        return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function calculateTotalHours(record) {
+        let totalMs = 0;
+        if (record.time_in_am && record.time_out_am) totalMs += new Date(record.time_out_am) - new Date(record.time_in_am);
+        if (record.time_in_pm && record.time_out_pm) totalMs += new Date(record.time_out_pm) - new Date(record.time_in_pm);
+        if (totalMs === 0) return '--';
+        const mins = Math.floor(totalMs / 60000);
+        if (mins === 0 && totalMs > 0) return '< 1m';
+        return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+    }
+
+    async function loadUserAttendance(uid) {
+        const tbody = document.getElementById('attendance-body');
+        const placeholder = document.getElementById('att-placeholder');
+        const loading = document.getElementById('att-loading');
+        const empty = document.getElementById('att-empty');
+        const info = document.getElementById('selected-user-info');
+        const nameEl = document.getElementById('selected-user-name');
+
+        tbody.innerHTML = '';
+        placeholder.classList.add('hidden');
+        empty.classList.add('hidden');
+
+        if (!uid) {
+            placeholder.classList.remove('hidden');
+            info.classList.add('hidden');
+            return;
+        }
+
+        const select = document.getElementById('user-select');
+        const selectedOpt = select.options[select.selectedIndex];
+        nameEl.textContent = selectedOpt.dataset.name || selectedOpt.textContent;
+        info.classList.remove('hidden');
+        loading.classList.remove('hidden');
+
+        try {
+            const res = await fetch(`/api/admin/users/${uid}/attendance`);
+            loading.classList.add('hidden');
+
+            if (res.ok) {
+                const records = await res.json();
+                currentRecords = records;
+                renderAttendanceTable();
+            } else {
+                empty.classList.remove('hidden');
+                empty.innerHTML = '<span class="text-red-400">Failed to load records.</span>';
+            }
+        } catch (e) {
+            loading.classList.add('hidden');
+            empty.classList.remove('hidden');
+            empty.innerHTML = '<span class="text-red-400">Network error.</span>';
+        }
+    }
+
+    function renderAttendanceTable() {
+        const tbody = document.getElementById('attendance-body');
+        const empty = document.getElementById('att-empty');
+        tbody.innerHTML = '';
+
+        if (currentRecords.length === 0) {
+            empty.classList.remove('hidden');
+            return;
+        } else {
+            empty.classList.add('hidden');
+        }
+
+        let sortedRecords = [...currentRecords];
+        const sortOrder = document.getElementById('sort-order') ? document.getElementById('sort-order').value : 'desc';
+        if (sortOrder === 'asc') {
+            sortedRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
+        } else {
+            sortedRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        sortedRecords.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-white/5 light-mode:border-black/5 hover:bg-white/5 light-mode:hover:bg-black/5 transition-colors";
+
+            let badge = '';
+            if (r.status === 'present') badge = `<span class="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 text-xs font-semibold">Present</span>`;
+            else if (r.status === 'holiday') badge = `<span class="px-2 py-1 rounded bg-purple-500/10 text-purple-400 text-xs font-semibold">Holiday</span>`;
+            else if (r.status && r.status.includes('half_day')) badge = `<span class="px-2 py-1 rounded bg-yellow-500/10 text-yellow-400 text-xs font-semibold">Half Day</span>`;
+            else if (r.status === 'no_duty') badge = `<span class="px-2 py-1 rounded bg-red-500/10 text-red-400 text-xs font-semibold">Leave</span>`;
+            else badge = `<span class="px-2 py-1 rounded bg-gray-500/10 text-gray-400 text-xs font-semibold">${r.status || 'N/A'}</span>`;
+
+            tr.innerHTML = `
+                <td class="py-4 px-6 font-medium text-white light-mode:text-gray-900 whitespace-nowrap">${formatDateString(r.date)}</td>
+                <td class="py-4 px-6 whitespace-nowrap">${badge}</td>
+                <td class="py-4 px-6 text-gray-400 whitespace-nowrap">${formatIsoTime(r.time_in_am)}</td>
+                <td class="py-4 px-6 text-gray-400 whitespace-nowrap">${formatIsoTime(r.time_out_am)}</td>
+                <td class="py-4 px-6 text-gray-400 whitespace-nowrap">${formatIsoTime(r.time_in_pm)}</td>
+                <td class="py-4 px-6 text-gray-400 whitespace-nowrap">${formatIsoTime(r.time_out_pm)}</td>
+                <td class="py-4 px-6 text-right font-medium text-indigo-400 whitespace-nowrap">${calculateTotalHours(r)}</td>
+                <td class="py-4 px-6 text-right whitespace-nowrap">
+                    <button onclick="openEditModal('${r.id}')" title="Edit" class="text-indigo-400 hover:text-indigo-300 mr-4 transition-colors">
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+                    <button onclick="deleteRecord('${r.id}')" title="Delete" class="text-red-400 hover:text-red-300 transition-colors">
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function extractTimeFromIso(isoString) {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+
+    function openEditModal(recordId) {
+        const record = currentRecords.find(r => r.id === recordId);
+        if (!record) return;
+
+        document.getElementById('edit-id').value = record.id;
+        document.getElementById('edit-status').value = record.status || 'present';
+
+        document.getElementById('edit-time-in-am').value = extractTimeFromIso(record.time_in_am);
+        document.getElementById('edit-time-out-am').value = extractTimeFromIso(record.time_out_am);
+        document.getElementById('edit-time-in-pm').value = extractTimeFromIso(record.time_in_pm);
+        document.getElementById('edit-time-out-pm').value = extractTimeFromIso(record.time_out_pm);
+
+        document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.add('hidden');
+    }
+
+    async function submitEdit(e) {
+        e.preventDefault();
+
+        const recordId = document.getElementById('edit-id').value;
+        const record = currentRecords.find(r => r.id === recordId);
+        if (!record) return;
+
+        const status = document.getElementById('edit-status').value;
+        const tiAM = document.getElementById('edit-time-in-am').value;
+        const toAM = document.getElementById('edit-time-out-am').value;
+        const tiPM = document.getElementById('edit-time-in-pm').value;
+        const toPM = document.getElementById('edit-time-out-pm').value;
+
+        // Construct ISO strings using the record's date
+        // Note: this assumes the date string matches the local time intended.
+        const baseDate = record.date;
+
+        const constructIso = (timeStr) => {
+            if (!timeStr) return null;
+            return new Date(`${baseDate}T${timeStr}:00`).toISOString();
+        };
+
+        const payload = {
+            status: status,
+            time_in_am: constructIso(tiAM),
+            time_out_am: constructIso(toAM),
+            time_in_pm: constructIso(tiPM),
+            time_out_pm: constructIso(toPM)
+        };
+
+        const btn = document.getElementById('save-edit-btn');
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+
+        try {
+            const res = await fetch(`/api/admin/attendance/${recordId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                closeEditModal();
+                // Reload attendance data
+                const select = document.getElementById('user-select');
+                if (select.value) {
+                    loadUserAttendance(select.value);
+                }
+            } else {
+                alert("Failed to update record.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error updating record.");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Save Changes";
+        }
+    }
+
+    let recordToDelete = null;
+
+    function deleteRecord(recordId) {
+        recordToDelete = recordId;
+        document.getElementById('delete-modal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        recordToDelete = null;
+        document.getElementById('delete-modal').classList.add('hidden');
+    }
+
+    async function confirmDeleteRecord() {
+        if (!recordToDelete) return;
+
+        const btn = document.getElementById('confirm-delete-btn');
+        btn.disabled = true;
+        btn.textContent = "Deleting...";
+
+        try {
+            const res = await fetch(`/api/admin/attendance/${recordToDelete}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                closeDeleteModal();
+                // Reload attendance data
+                const select = document.getElementById('user-select');
+                if (select.value) {
+                    loadUserAttendance(select.value);
+                }
+            } else {
+                alert("Failed to delete record.");
+                closeDeleteModal();
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error deleting record.");
+            closeDeleteModal();
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Yes, Delete Record";
+        }
+    }
+</script>
+{% endblock %}

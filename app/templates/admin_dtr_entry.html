@@ -1,0 +1,235 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}DTR Entry{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1
+        class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-orange-400 light-mode:from-red-600 light-mode:to-orange-600">
+        DTR Entry
+    </h1>
+    <p class="text-gray-400 mt-2 light-mode:text-gray-600">Add or update attendance records manually or via CSV
+        upload.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    <!-- Manual Entry -->
+    <div class="glass-card p-6 rounded-2xl border border-white/5 light-mode:border-black/5">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                    </path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-semibold text-white light-mode:text-gray-900">Manual Entry</h2>
+        </div>
+
+        <form id="manual-dtr-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">User</label>
+                <select id="manual-user" required
+                    class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors">
+                    <option value="" class="bg-navy-900 light-mode:bg-white">-- Select user --</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">Date</label>
+                <input type="date" id="manual-date" required
+                    class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">AM In</label>
+                    <input type="time" id="manual-am-in"
+                        class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">AM Out</label>
+                    <input type="time" id="manual-am-out"
+                        class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">PM In</label>
+                    <input type="time" id="manual-pm-in"
+                        class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">PM Out</label>
+                    <input type="time" id="manual-pm-out"
+                        class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600 mb-1">Status</label>
+                <select id="manual-status"
+                    class="w-full bg-white/5 light-mode:bg-black/5 border border-white/10 light-mode:border-black/10 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors">
+                    <option value="present" class="bg-navy-900 light-mode:bg-white">Present</option>
+                    <option value="holiday" class="bg-navy-900 light-mode:bg-white">Holiday</option>
+                    <option value="no_duty" class="bg-navy-900 light-mode:bg-white">Full Day Leave</option>
+                    <option value="half_day_am" class="bg-navy-900 light-mode:bg-white">Half Day Leave (AM)</option>
+                    <option value="half_day_pm" class="bg-navy-900 light-mode:bg-white">Half Day Leave (PM)</option>
+                    <option value="excused" class="bg-navy-900 light-mode:bg-white">Excused</option>
+                </select>
+            </div>
+            <button type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/25 mt-2">
+                Submit Entry
+            </button>
+            <div id="manual-result" class="text-sm mt-2 hidden"></div>
+        </form>
+    </div>
+
+    <!-- Bulk CSV Upload -->
+    <div class="glass-card p-6 rounded-2xl border border-white/5 light-mode:border-black/5">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-semibold text-white light-mode:text-gray-900">Bulk CSV Upload</h2>
+        </div>
+
+        <div class="space-y-4">
+            <div
+                class="glass-card p-4 rounded-xl border border-white/5 light-mode:border-black/5 text-sm text-gray-400">
+                <p class="font-medium text-white light-mode:text-gray-900 mb-2">CSV Format Required:</p>
+                <code
+                    class="text-xs text-indigo-400 block bg-black/20 p-3 rounded-lg overflow-x-auto">user_email,date,am_in,am_out,pm_in,pm_out,status<br>john@example.com,2024-03-01,08:00,12:00,13:00,17:00,present</code>
+                <p class="mt-2 text-xs">Times in 24-hour format (HH:MM). Status: present, holiday, no_duty, half_day_am,
+                    half_day_pm</p>
+            </div>
+
+            <form id="bulk-upload-form">
+                <div class="border-2 border-dashed border-white/10 light-mode:border-black/10 rounded-xl p-8 text-center hover:border-indigo-500/30 transition-colors cursor-pointer"
+                    onclick="document.getElementById('csv-file').click()">
+                    <svg class="w-10 h-10 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                        </path>
+                    </svg>
+                    <p class="text-gray-400 text-sm">Click to select a CSV file or drag and drop</p>
+                    <p id="file-name" class="text-indigo-400 text-sm mt-2 hidden"></p>
+                    <input type="file" id="csv-file" accept=".csv" class="hidden" onchange="handleFileSelect(this)">
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-medium transition-all shadow-lg shadow-emerald-500/25 mt-4">
+                    Upload & Process
+                </button>
+                <div id="bulk-result" class="text-sm mt-2 hidden"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUsers();
+    });
+
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/admin/users');
+            if (res.ok) {
+                const users = await res.json();
+                const select = document.getElementById('manual-user');
+                users.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.uid;
+                    opt.textContent = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email;
+                    opt.className = 'bg-navy-900 light-mode:bg-white';
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    function handleFileSelect(input) {
+        const nameEl = document.getElementById('file-name');
+        if (input.files.length > 0) {
+            nameEl.textContent = input.files[0].name;
+            nameEl.classList.remove('hidden');
+        }
+    }
+
+    // Manual Entry
+    document.getElementById('manual-dtr-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const resultEl = document.getElementById('manual-result');
+        resultEl.classList.add('hidden');
+
+        const payload = {
+            user_id: document.getElementById('manual-user').value,
+            date: document.getElementById('manual-date').value,
+            am_in: document.getElementById('manual-am-in').value || null,
+            am_out: document.getElementById('manual-am-out').value || null,
+            pm_in: document.getElementById('manual-pm-in').value || null,
+            pm_out: document.getElementById('manual-pm-out').value || null,
+            status: document.getElementById('manual-status').value
+        };
+
+        try {
+            const res = await fetch('/api/admin/dtr/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            resultEl.classList.remove('hidden');
+            if (res.ok) {
+                resultEl.innerHTML = `<span class="text-emerald-400">✓ ${result.message}</span>`;
+                e.target.reset();
+            } else {
+                resultEl.innerHTML = `<span class="text-red-400">✗ ${result.error}</span>`;
+            }
+        } catch (err) {
+            resultEl.classList.remove('hidden');
+            resultEl.innerHTML = `<span class="text-red-400">✗ Network error</span>`;
+        }
+    });
+
+    // Bulk Upload
+    document.getElementById('bulk-upload-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const resultEl = document.getElementById('bulk-result');
+        resultEl.classList.add('hidden');
+
+        const fileInput = document.getElementById('csv-file');
+        if (!fileInput.files.length) {
+            resultEl.classList.remove('hidden');
+            resultEl.innerHTML = `<span class="text-red-400">Please select a CSV file first.</span>`;
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            const res = await fetch('/api/admin/dtr/bulk', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await res.json();
+            resultEl.classList.remove('hidden');
+            if (res.ok) {
+                resultEl.innerHTML = `<span class="text-emerald-400">✓ ${result.message}</span>`;
+                fileInput.value = '';
+                document.getElementById('file-name').classList.add('hidden');
+            } else {
+                resultEl.innerHTML = `<span class="text-red-400">✗ ${result.error}</span>`;
+            }
+        } catch (err) {
+            resultEl.classList.remove('hidden');
+            resultEl.innerHTML = `<span class="text-red-400">✗ Network error</span>`;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,691 @@
+{% extends "layouts/app_layout.html" %}
+
+{% block title %}Daily Attendance{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-end flex-wrap gap-4">
+    <div>
+        <h1
+            class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 light-mode:from-indigo-600 light-mode:to-purple-600">
+            Attendance
+        </h1>
+        <p class="text-gray-400 mt-2 light-mode:text-gray-600">Record your daily Time In and Time Out for AM and PM
+            shifts.</p>
+    </div>
+
+    <div class="flex items-center gap-4 flex-wrap">
+        <div
+            class="glass-card px-4 py-3 rounded-xl border border-white/5 light-mode:border-black/5 flex items-center gap-3">
+            <label for="attendance-status"
+                class="text-sm font-medium text-gray-400 light-mode:text-gray-600">Status:</label>
+            <select id="attendance-status" onchange="submitStatus(this.value)"
+                class="w-full xl:max-w-48 bg-navy-900 light-mode:bg-white border text-center text-sm font-medium border-white/10 light-mode:border-gray-200 text-white light-mode:text-gray-900 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition-colors">
+                <option value="present">Present (On Duty)</option>
+                <option value="holiday">Holiday</option>
+                <option value="half_day_am">Half Day (AM)</option>
+                <option value="half_day_pm">Half Day (PM)</option>
+                <option value="no_duty">Leave / Day Off</option>
+                <option value="weekend">Weekend</option>
+            </select>
+        </div>
+
+        <div
+            class="glass-card px-4 py-3 rounded-xl border border-white/5 light-mode:border-black/5 flex items-center gap-3">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span class="text-white font-medium light-mode:text-gray-900" id="current-date-display">Today</span>
+        </div>
+    </div>
+</div>
+
+<div id="shifts-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    <!-- Morning Shift Card -->
+    <div id="am-shift-card"
+        class="glass-card p-6 rounded-2xl border border-white/5 light-mode:border-black/5 relative overflow-hidden">
+        <div
+            class="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none">
+        </div>
+
+        <div class="flex items-center gap-3 mb-6 relative">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+            </div>
+            <h2 id="am-shift-title" class="text-xl font-semibold text-white light-mode:text-gray-900">Morning Shift (AM)
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 relative">
+            <div class="space-y-4">
+                <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600">Time In</label>
+                <div id="display-time-in-am"
+                    class="h-16 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 light-mode:border-black/10 light-mode:bg-black/5 text-2xl font-mono text-gray-500">
+                    --:--
+                </div>
+                <button id="btn-in-am" onclick="recordAttendance('in_am')"
+                    class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-all shadow-lg shadow-indigo-500/25">
+                    Clock In AM
+                </button>
+            </div>
+            <div class="space-y-4">
+                <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600">Time Out</label>
+                <div id="display-time-out-am"
+                    class="h-16 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 light-mode:border-black/10 light-mode:bg-black/5 text-2xl font-mono text-gray-500">
+                    --:--
+                </div>
+                <button id="btn-out-am" onclick="recordAttendance('out_am')"
+                    class="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 light-mode:bg-black/5 light-mode:hover:bg-black/10 text-white light-mode:text-gray-800 font-medium transition-all"
+                    disabled>
+                    Clock Out AM
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Afternoon Shift Card -->
+    <div id="pm-shift-card"
+        class="glass-card p-6 rounded-2xl border border-white/5 light-mode:border-black/5 relative overflow-hidden">
+        <div
+            class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none">
+        </div>
+
+        <div class="flex items-center gap-3 mb-6 relative">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                    </path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-semibold text-white light-mode:text-gray-900">Afternoon Shift (PM)</h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 relative">
+            <div class="space-y-4">
+                <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600">Time In</label>
+                <div id="display-time-in-pm"
+                    class="h-16 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 light-mode:border-black/10 light-mode:bg-black/5 text-2xl font-mono text-gray-500">
+                    --:--
+                </div>
+                <button id="btn-in-pm" onclick="recordAttendance('in_pm')"
+                    class="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 light-mode:bg-black/5 light-mode:hover:bg-black/10 text-white light-mode:text-gray-800 font-medium transition-all"
+                    disabled>
+                    Clock In PM
+                </button>
+            </div>
+            <div class="space-y-4">
+                <label class="block text-sm font-medium text-gray-400 light-mode:text-gray-600">Time Out</label>
+                <div id="display-time-out-pm"
+                    class="h-16 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 light-mode:border-black/10 light-mode:bg-black/5 text-2xl font-mono text-gray-500">
+                    --:--
+                </div>
+                <button id="btn-out-pm" onclick="recordAttendance('out_pm')"
+                    class="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 light-mode:bg-black/5 light-mode:hover:bg-black/10 text-white light-mode:text-gray-800 font-medium transition-all"
+                    disabled>
+                    Clock Out PM
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Table Card -->
+<div class="glass-card mt-8 p-6 rounded-2xl border border-white/5 light-mode:border-black/5 relative overflow-hidden">
+    <div class="flex items-center justify-between mb-2 relative">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold text-white light-mode:text-gray-900">Recent Attendance</h2>
+                <p id="week-label" class="text-sm text-gray-400 light-mode:text-gray-600 mt-0.5">Week -- (--- -- to ---
+                    --)</p>
+            </div>
+        </div>
+        <button onclick="exportAttendancePDF()"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors shadow-lg shadow-indigo-500/25">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+            </svg>
+            Export PDF
+        </button>
+    </div>
+
+    <div class="overflow-x-auto relative mt-4">
+        <table class="w-full text-left border-collapse min-w-max">
+            <thead>
+                <tr
+                    class="border-b border-white/10 light-mode:border-black/10 text-sm font-medium text-gray-400 light-mode:text-gray-500">
+                    <th class="pb-3 px-4 font-semibold">Date</th>
+                    <th class="pb-3 px-4 font-semibold">Status</th>
+                    <th class="pb-3 px-4 font-semibold">1st Half In</th>
+                    <th class="pb-3 px-4 font-semibold">1st Half Out</th>
+                    <th id="th-2nd-half-in" class="pb-3 px-4 font-semibold">2nd Half In</th>
+                    <th id="th-2nd-half-out" class="pb-3 px-4 font-semibold">2nd Half Out</th>
+                    <th class="pb-3 px-4 font-semibold text-right">Total Hours</th>
+                </tr>
+            </thead>
+            <tbody id="attendance-history-body" class="text-sm">
+                <!-- Rows populated dynamically -->
+            </tbody>
+        </table>
+
+        <div id="history-loading" class="py-10 text-center text-gray-500 hidden">
+            <svg class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            Loading history...
+        </div>
+        <div id="history-empty" class="py-10 text-center text-gray-500 hidden">
+            No attendance records found for this week.
+        </div>
+
+        <!-- Bottom Controls: Total Hours and Pagination -->
+        <div class="flex items-center justify-between mt-6 pt-4 border-t border-white/10 light-mode:border-black/10">
+            <div>
+                <span class="text-sm text-gray-400 light-mode:text-gray-500 font-medium">Total Hours Rendered:</span>
+                <span id="week-total-hours" class="ml-2 text-lg font-bold text-indigo-400">0h 0m</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="btn-prev-week" onclick="changeWeek(-1)"
+                    class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 light-mode:bg-black/5 light-mode:hover:bg-black/10 text-gray-300 light-mode:text-gray-700 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                        </path>
+                    </svg>
+                    Previous
+                </button>
+                <button id="btn-next-week" onclick="changeWeek(1)"
+                    class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 light-mode:bg-black/5 light-mode:hover:bg-black/10 text-gray-300 light-mode:text-gray-700 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
+                    Next
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let attendanceRecords = [];
+    let userScheduleType = 'split';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const dateDisplay = document.getElementById('current-date-display');
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateDisplay.textContent = new Date().toLocaleDateString(undefined, options);
+
+        fetchAttendanceData();
+        fetchAttendanceHistory();
+    });
+
+    const activeBtnClass = "w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-all shadow-lg shadow-indigo-500/25";
+    const disabledBtnClass = "w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 light-mode:bg-black/5 light-mode:hover:bg-black/10 text-white light-mode:text-gray-800 font-medium transition-all";
+
+    function updateUI(data) {
+        // Save the schedule type globally for history table logic
+        userScheduleType = data.schedule_type || 'split';
+
+        // Helper to format iso date string to time
+        const formatTime = (isoString) => {
+            if (!isoString) return '--:--';
+            const date = new Date(isoString);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        };
+
+        // Update displays
+        document.getElementById('display-time-in-am').textContent = formatTime(data.time_in_am);
+        document.getElementById('display-time-out-am').textContent = formatTime(data.time_out_am);
+        document.getElementById('display-time-in-pm').textContent = formatTime(data.time_in_pm);
+        document.getElementById('display-time-out-pm').textContent = formatTime(data.time_out_pm);
+
+        // Continuous shift toggle
+        if (data.schedule_type === 'continuous') {
+            document.getElementById('pm-shift-card').style.display = 'none';
+            document.getElementById('shifts-container').classList.remove('lg:grid-cols-2');
+            document.getElementById('shifts-container').classList.add('lg:grid-cols-1');
+            document.getElementById('am-shift-title').innerText = 'Daily Shift';
+            document.getElementById('btn-in-am').innerText = 'Clock In';
+            document.getElementById('btn-out-am').innerText = 'Clock Out';
+        } else {
+            document.getElementById('pm-shift-card').style.display = 'block';
+            document.getElementById('shifts-container').classList.remove('lg:grid-cols-1');
+            document.getElementById('shifts-container').classList.add('lg:grid-cols-2');
+            document.getElementById('am-shift-title').innerText = 'Morning Shift (AM)';
+            document.getElementById('btn-in-am').innerText = 'Clock In AM';
+            document.getElementById('btn-out-am').innerText = 'Clock Out AM';
+        }
+
+        // Update Select Value
+        const statusSelect = document.getElementById('attendance-status');
+        if (data.status && statusSelect) {
+            statusSelect.value = data.status;
+        }
+        const status = data.status || 'present';
+
+        // Update button states
+        const btnInAm = document.getElementById('btn-in-am');
+        const btnOutAm = document.getElementById('btn-out-am');
+        const btnInPm = document.getElementById('btn-in-pm');
+        const btnOutPm = document.getElementById('btn-out-pm');
+
+        // Determine if we are currently in AM or PM using the custom schedule
+        const shiftInPmParts = (data.shift_in_pm || '13:00').split(':');
+        const pmThresholdHour = parseInt(shiftInPmParts[0]);
+        const pmThresholdMin = parseInt(shiftInPmParts[1]);
+
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMin = now.getMinutes();
+        const currentDay = now.getDay(); // 0 is Sunday, 6 is Saturday
+
+        const isNowPM = currentHour > pmThresholdHour || (currentHour === pmThresholdHour && currentMin >= pmThresholdMin);
+        const isNowAM = !isNowPM;
+        const isWeekend = currentDay === 0 || currentDay === 6;
+
+        // Weekend logic: lock everything
+        if (isWeekend) {
+            DisableBtn(btnInAm); DisableBtn(btnOutAm); DisableBtn(btnInPm); DisableBtn(btnOutPm);
+            // Lock out the status dropdown and force 'weekend'
+            // Need to wrap in timeout/check so it doesn't infinite loop if setting value
+            if (statusSelect && statusSelect.value !== 'weekend') {
+                statusSelect.value = 'weekend';
+                statusSelect.disabled = true;
+            }
+            return;
+        }
+
+        // Logic for which button should be active
+        if (status === 'holiday' || status === 'no_duty' || status === 'excused') {
+            DisableBtn(btnInAm); DisableBtn(btnOutAm); DisableBtn(btnInPm); DisableBtn(btnOutPm);
+        } else if (status === 'half_day_am') {
+            DisableBtn(btnInAm); DisableBtn(btnOutAm);
+            // Handle PM logically
+            if (isNowAM) {
+                // PM buttons locked during AM hours
+                DisableBtn(btnInPm); DisableBtn(btnOutPm);
+            } else if (!data.time_in_pm) {
+                enableBtn(btnInPm); DisableBtn(btnOutPm);
+            } else if (!data.time_out_pm) {
+                DisableBtn(btnInPm); enableBtn(btnOutPm);
+            } else {
+                DisableBtn(btnInPm); DisableBtn(btnOutPm);
+            }
+        } else if (status === 'half_day_pm') {
+            DisableBtn(btnInPm); DisableBtn(btnOutPm);
+            // Handle AM logically
+            if (isNowPM) {
+                // AM buttons locked during PM hours
+                DisableBtn(btnInAm); DisableBtn(btnOutAm);
+            } else if (!data.time_in_am) {
+                enableBtn(btnInAm); DisableBtn(btnOutAm);
+            } else if (!data.time_out_am) {
+                DisableBtn(btnInAm); enableBtn(btnOutAm);
+            } else {
+                DisableBtn(btnInAm); DisableBtn(btnOutAm);
+            }
+        } else {
+            // Normal duty logic based on chronological sequence
+            if (!data.time_in_am) {
+                enableBtn(btnInAm); DisableBtn(btnOutAm); DisableBtn(btnInPm); DisableBtn(btnOutPm);
+            } else if (!data.time_out_am) {
+                DisableBtn(btnInAm); enableBtn(btnOutAm); DisableBtn(btnInPm); DisableBtn(btnOutPm);
+            } else if (!data.time_in_pm) {
+                DisableBtn(btnInAm); DisableBtn(btnOutAm); enableBtn(btnInPm); DisableBtn(btnOutPm);
+            } else if (!data.time_out_pm) {
+                DisableBtn(btnInAm); DisableBtn(btnOutAm); DisableBtn(btnInPm); enableBtn(btnOutPm);
+            } else {
+                DisableBtn(btnInAm); DisableBtn(btnOutAm); DisableBtn(btnInPm); DisableBtn(btnOutPm);
+            }
+        }
+    }
+
+    function enableBtn(btn) {
+        btn.disabled = false;
+        btn.className = activeBtnClass;
+    }
+
+    function DisableBtn(btn) {
+        btn.disabled = true;
+        btn.className = disabledBtnClass;
+    }
+
+    async function fetchAttendanceData() {
+        try {
+            const response = await fetch('/api/attendance/today');
+            if (response.ok) {
+                const data = await response.json();
+                updateUI(data);
+            }
+        } catch (error) {
+            console.error('Error fetching attendance data:', error);
+        }
+    }
+
+    async function recordAttendance(action) {
+        try {
+            const response = await fetch('/api/attendance/action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: action })
+            });
+
+            if (response.ok) {
+                fetchAttendanceData(); // Refresh UI after successful recording
+                fetchAttendanceHistory(); // Refetch history too
+            } else {
+                const result = await response.json();
+                console.error('Failed to record attendance:', result.error);
+                alert('Failed: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Network error during recordAttendance:', error);
+        }
+    }
+
+    async function submitStatus(status) {
+        try {
+            const res = await fetch('/api/attendance/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            if (res.ok) {
+                // If excused, fetch fresh data because times were automatically filled on the backend
+                if (status === 'excused') fetchAttendanceData();
+                else updateUI({ status: status, ...structuredClone(attendanceRecords.find(r => r.date === new Date().toISOString().split('T')[0]) || {}) });
+                fetchAttendanceHistory();
+            } else {
+                const result = await res.json();
+                console.error('Failed to update status:', result.error);
+                alert('Failed: ' + result.error);
+                fetchAttendanceData(); // Reset dropdown on error
+            }
+        } catch (error) {
+            console.error('Network error during recordStatus:', error);
+            fetchAttendanceData();
+        }
+    }
+
+    // Helper for formatting date (YYYY-MM-DD to string)
+    function formatDateString(dateStr) {
+        if (!dateStr) return '';
+        const dateParts = dateStr.split('-');
+        if (dateParts.length !== 3) return dateStr;
+        const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        const options = { weekday: 'short', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString(undefined, options);
+    }
+
+    // Format time
+    function formatIsoTime(isoString) {
+        if (!isoString) return '--:--';
+        const date = new Date(isoString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Calculate total hours
+    function calculateTotalHours(record) {
+        let totalMs = 0;
+
+        if (record.time_in_am && record.time_out_am) {
+            totalMs += new Date(record.time_out_am) - new Date(record.time_in_am);
+        }
+
+        if (record.time_in_pm && record.time_out_pm) {
+            totalMs += new Date(record.time_out_pm) - new Date(record.time_in_pm);
+        }
+
+        if (totalMs === 0) return '--';
+
+        const totalMinutes = Math.floor(totalMs / (1000 * 60));
+
+        if (totalMinutes === 0 && totalMs > 0) {
+            return '< 1m';
+        }
+
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+
+        return `${hours}h ${minutes}m`;
+    }
+
+    let currentWeek = null;
+    let maxWeek = null;
+
+    async function fetchAttendanceHistory(week = null) {
+        const tbody = document.getElementById('attendance-history-body');
+        const loading = document.getElementById('history-loading');
+        const empty = document.getElementById('history-empty');
+        const weekLabel = document.getElementById('week-label');
+        const totalHoursDisplay = document.getElementById('week-total-hours');
+        const btnPrev = document.getElementById('btn-prev-week');
+        const btnNext = document.getElementById('btn-next-week');
+
+        tbody.innerHTML = '';
+        loading.classList.remove('hidden');
+        empty.classList.add('hidden');
+        weekLabel.textContent = 'Loading...';
+
+        try {
+            let url = '/api/attendance/history';
+            if (week !== null) {
+                url += `?week=${week}`;
+            }
+
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                attendanceRecords = data.records;
+                currentWeek = data.current_week;
+                maxWeek = data.latest_week;
+
+                loading.classList.add('hidden');
+
+                // Update header and buttons
+                weekLabel.textContent = `Week ${currentWeek} (${formatDateString(data.start_date)} to ${formatDateString(data.end_date)})`;
+                btnPrev.disabled = currentWeek <= 1;
+                btnNext.disabled = data.is_latest;
+
+                // Format total hours
+                const tMins = Math.floor(data.total_ms / 60000);
+                const tHours = Math.floor(tMins / 60);
+                const tRemMins = tMins % 60;
+                totalHoursDisplay.textContent = `${tHours}h ${tRemMins}m`;
+
+                const th2ndHalfIn = document.getElementById('th-2nd-half-in');
+                const th2ndHalfOut = document.getElementById('th-2nd-half-out');
+
+                // Use the globally fetched schedule type (from today's data) rather than guessing from history
+                if (userScheduleType === 'continuous') {
+                    th2ndHalfIn.style.display = 'none';
+                    th2ndHalfOut.style.display = 'none';
+                } else {
+                    th2ndHalfIn.style.display = 'table-cell';
+                    th2ndHalfOut.style.display = 'table-cell';
+                }
+
+                if (attendanceRecords.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                attendanceRecords.forEach(record => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-white/5 light-mode:border-black/5 hover:bg-white/5 light-mode:hover:bg-black/5 transition-colors";
+
+                    let statusBadge = '';
+                    if (record.status === 'present') {
+                        statusBadge = `<span class="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 text-xs font-semibold">Present</span>`;
+                    } else if (record.status === 'holiday') {
+                        statusBadge = `<span class="px-2 py-1 rounded bg-purple-500/10 text-purple-400 text-xs font-semibold">Holiday</span>`;
+                    } else if (record.status && record.status.includes('half_day')) {
+                        statusBadge = `<span class="px-2 py-1 rounded bg-yellow-500/10 text-yellow-400 text-xs font-semibold">Half Day</span>`;
+                    } else if (record.status === 'no_duty') {
+                        statusBadge = `<span class="px-2 py-1 rounded bg-red-500/10 text-red-400 text-xs font-semibold">Leave</span>`;
+                    } else {
+                        statusBadge = `<span class="px-2 py-1 rounded bg-gray-500/10 text-gray-400 text-xs font-semibold">${record.status || 'N/A'}</span>`;
+                    }
+
+                    let cellsHtml = `
+                        <td class="py-4 px-4 font-medium text-white light-mode:text-gray-900 whitespace-nowrap">${formatDateString(record.date)}</td>
+                        <td class="py-4 px-4 whitespace-nowrap">${statusBadge}</td>
+                        <td class="py-4 px-4 text-gray-400 light-mode:text-gray-600 whitespace-nowrap">${formatIsoTime(record.time_in_am)}</td>
+                        <td class="py-4 px-4 text-gray-400 light-mode:text-gray-600 whitespace-nowrap">${formatIsoTime(record.time_out_am)}</td>
+                    `;
+
+                    if (userScheduleType !== 'continuous') {
+                        cellsHtml += `
+                            <td class="py-4 px-4 text-gray-400 light-mode:text-gray-600 whitespace-nowrap">${formatIsoTime(record.time_in_pm)}</td>
+                            <td class="py-4 px-4 text-gray-400 light-mode:text-gray-600 whitespace-nowrap">${formatIsoTime(record.time_out_pm)}</td>
+                        `;
+                    }
+
+                    cellsHtml += `<td class="py-4 px-4 text-right font-medium text-indigo-400 whitespace-nowrap">${calculateTotalHours(record)}</td>`;
+
+                    tr.innerHTML = cellsHtml;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                const errBody = await response.text();
+                console.error("Failed to load history:", errBody);
+                loading.classList.add('hidden');
+                empty.classList.remove('hidden');
+                empty.innerHTML = `<div class="text-red-400 whitespace-pre-wrap text-left text-xs bg-black/50 p-4 rounded-lg">Failed to load history:<br>${errBody}</div>`;
+            }
+        } catch (error) {
+            console.error('Error fetching history:', error);
+            loading.classList.add('hidden');
+            empty.classList.remove('hidden');
+            empty.innerHTML = '<span class="text-red-400">Network error loading history</span>';
+        }
+    }
+
+    function changeWeek(direction) {
+        if (currentWeek === null) return;
+        const newWeek = currentWeek + direction;
+        if (newWeek > 0) {
+            fetchAttendanceHistory(newWeek);
+        }
+    }
+
+    function exportAttendancePDF() {
+        if (attendanceRecords.length === 0) {
+            alert('No records to export.');
+            return;
+        }
+
+        let grandTotalMs = 0;
+        let tableRows = '';
+
+        attendanceRecords.forEach(r => {
+            let rowMs = 0;
+            if (r.time_in_am && r.time_out_am) rowMs += new Date(r.time_out_am) - new Date(r.time_in_am);
+            if (r.time_in_pm && r.time_out_pm) rowMs += new Date(r.time_out_pm) - new Date(r.time_in_pm);
+            grandTotalMs += Math.max(0, rowMs);
+
+            const rowMins = Math.floor(Math.max(0, rowMs) / 60000);
+            const rowHoursStr = rowMs > 0 ? `${Math.floor(rowMins / 60)}h ${rowMins % 60}m` : '--';
+
+            const dateParts = (r.date || '').split('-');
+            let dateFormatted = r.date || '';
+            if (dateParts.length === 3) {
+                const d = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                dateFormatted = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+
+            let pmHtml = '';
+            if (userScheduleType !== 'continuous') {
+                pmHtml = `
+                    <td>${formatIsoTime(r.time_in_pm)}</td>
+                    <td>${formatIsoTime(r.time_out_pm)}</td>
+                `;
+            }
+
+            tableRows += `
+                <tr>
+                    <td>${dateFormatted}</td>
+                    <td>${formatIsoTime(r.time_in_am)}</td>
+                    <td>${formatIsoTime(r.time_out_am)}</td>
+                    ${pmHtml}
+                    <td style="text-align:right;font-weight:600">${rowHoursStr}</td>
+                </tr>
+            `;
+        });
+
+        const totalMins = Math.floor(grandTotalMs / 60000);
+        const totalHours = Math.floor(totalMins / 60);
+        const totalRemMins = totalMins % 60;
+
+        const weekLabelText = document.getElementById('week-label') ? document.getElementById('week-label').innerText : '';
+
+        const printWin = window.open('', '_blank', 'width=900,height=700');
+        printWin.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Attendance Record ${weekLabelText}</title>
+                <style>
+                    body { font-family: 'Inter', Arial, sans-serif; padding: 40px; color: #111; }
+                    h1 { font-size: 20px; margin-bottom: 4px; }
+                    .subtitle { font-size: 12px; color: #6b7280; margin-bottom: 20px; }
+                    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+                    th { background: #f3f4f6; padding: 10px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
+                    td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+                    tr:last-child td { border-bottom: none; }
+                    .total-section { margin-top: 20px; padding-top: 16px; border-top: 2px solid #e5e7eb; text-align: right; }
+                    .total-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+                    .total-value { font-size: 22px; font-weight: 700; color: #4f46e5; }
+                    @media print { body { padding: 20px; } }
+                </style>
+            </head>
+            <body>
+                <h1>Attendance Record ${weekLabelText ? '- ' + weekLabelText : ''}</h1>
+                <p class="subtitle">Generated on ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>1st Half In</th>
+                            <th>1st Half Out</th>
+                            ${userScheduleType !== 'continuous' ? '<th>2nd Half In</th><th>2nd Half Out</th>' : ''}
+                            <th style="text-align:right">Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+                <div class="total-section">
+                    <p class="total-label">Total Hours Rendered</p>
+                    <p class="total-value">${totalHours}h ${totalRemMins}m</p>
+                </div>
+            </body>
+            </html>
+        `);
+        printWin.document.close();
+        printWin.onload = () => {
+            printWin.print();
+        };
+    }
+</script>
+{% endblock %}
